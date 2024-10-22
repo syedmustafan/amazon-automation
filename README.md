@@ -10,13 +10,13 @@ This project is a web application designed to scrape brand data from Amazon. It 
 - [Creating a Superuser](#creating-a-superuser)
 - [Running the Development Server](#running-the-development-server)
 - [Adding Brands](#adding-brands)
-- [API Endpoints](#api-endpoints)
 - [Task Scheduling](#task-scheduling)
-- [Scraping Features](#scraping-features)
 - [Celery Commands](#celery-commands)
 - [Logging and Caching](#logging-and-caching)
-- [Contributing](#contributing)
-- [License](#license)
+- [API Endpoints](#api-endpoints)
+- [Scraping Features](#scraping-features)
+
+
 
 ## Installation Guide
 
@@ -37,6 +37,8 @@ pip install -r requirements.txt
 
 ```
 
+
+
 ## Database Migration
 
 After installing the requirements, navigate to the project directory where manage.py is located and run the following commands to migrate the database tables:
@@ -49,6 +51,7 @@ python manage.py migrate django_celery_beat
 ```
 
 
+
 ## Creating a Superuser
 
 To access the admin panel, create a superuser account:
@@ -58,6 +61,7 @@ python manage.py createsuperuser
 
 ```
 You will be prompted to enter a username and password.
+
 
 
 
@@ -76,6 +80,7 @@ http://127.0.0.1:8000/admin
 ```
 
 
+
 ## Adding Brands
 
 In the admin panel, you can add brands and their corresponding Amazon URLs. When adding a brand, format the URL as follows:
@@ -85,6 +90,62 @@ https://www.amazon.com/{{brand_name}}-products/s?k={{brand_name}}+products
 
 ```
 After adding a brand, wait for the scheduler to run and scrape all the data for the brand.
+
+
+
+## Task Scheduling
+
+The scraper task runs every 6 hours (4 times a day). Ensure that you have the Redis server, Celery workers, and Celery Beat running.
+
+
+
+
+## Celery Commands to run Scheduling
+
+To manage task scheduling and worker processes, you need to run the following commands:
+
+### 1. Start the Redis Server
+
+```bash
+redis-server
+
+```
+
+
+
+### 2. Run the Celery Worker:
+
+```bash
+celery -A amazon_scrape worker -l info
+
+```
+
+### 3. Run the Celery Beat Scheduler:
+
+```bash
+celery -A amazon_scrape beat -l info
+
+```
+You can also update the time for the cron by updating in the follwoing peice of code in settings.py. If you want to run every 5 minutes you can change it to:
+
+```bash
+CELERY_BEAT_SCHEDULE = {
+    'scrape_amazon': {
+        'task': 'products.tasks.scrape_amazon',
+        'schedule': crontab(minute='*/5'),
+    },
+}
+
+```
+
+
+
+## Logging and Caching
+
+The application utilizes logging to track scraping activities and errors. The logging configuration is set to log messages in scraping.log.
+
+File-based caching is used to minimize redundant scraping efforts, improving performance and reducing the load on the scraping target.
+
 
 
 
@@ -104,13 +165,14 @@ The application provides two API endpoints:
 
 
 
-## Task Scheduling
 
-The scraper task runs every 6 hours (4 times a day). Ensure that you have the Redis server, Celery workers, and Celery Beat running.
+## Scraping Features
 
+The project includes advanced scraping features, including:
 
-
-
-
-
+- **Retries** for scraping requests
+- **Anti-scraping measures** (user agents)
+- **CAPTCHA handling**
+- **Error and info logging**
+- **File-based caching** for efficiency
 
