@@ -36,7 +36,6 @@ def get_random_user_agent():
 
 
 def scrape_products(brand):
-    breakpoint()
     """Scrape products from a brand's Amazon URL."""
     cache_key = f"products_{brand.id}"  # Create a cache key based on the brand ID
     cached_data = cache.get(cache_key)  # Check if data is cached
